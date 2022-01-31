@@ -336,7 +336,7 @@ void mainLoop()
 *******************************************************************************/
 HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
-	const HDdouble kStiffness = -0.0075; /* N/mm */
+	const HDdouble kStiffness = -0.0065; /* N/mm */
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
  
