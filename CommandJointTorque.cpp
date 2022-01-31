@@ -88,6 +88,12 @@ typedef struct//defining a new type
 
 } DeviceStateStruct;
 
+typedef struct
+{
+	HDdouble energy;
+	HDint counter;
+} EnergyStruct;
+
 /*****************************************************************************
  Callback that retrieves state.
 *****************************************************************************/
@@ -260,9 +266,10 @@ int main(int argc, char* argv[])
         
     }
 
+	EnergyStruct e;
     /* Schedule the main callback that will render forces to the device. */
     hGravityWell = hdScheduleAsynchronous(
-        jointTorqueCallback, 0, 
+        jointTorqueCallback, &e, 
         HD_MAX_SCHEDULER_PRIORITY);
 
     hdEnable(HD_FORCE_OUTPUT);
@@ -336,6 +343,7 @@ void mainLoop()
 *******************************************************************************/
 HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
+	EnergyStruct* engergy_struct = (EnergyStruct*) data;
 	const HDdouble kStiffness = -0.0065; /* N/mm */
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
@@ -353,7 +361,9 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
     hduVector3Dd position;
 	hduVector3Dd velocity;
 
-    hduVector3Dd force;
+	//double energy = 0;
+	int sampleTime = 10;
+	hduVector3Dd force;
     hduVector3Dd positionTwell;
     hduVector3Dd gimbalAngles;
     hduVector3Dd gimbalTorque;
@@ -403,6 +413,9 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		force[0] = -kStiffness*velocity[0];
 		force[1] = 0;
 		force[2] = 0;
+		//energy = energy + sampleTime*force[0]*velocity[0];
+		engergy_struct->energy += sampleTime*force[0] * velocity[0];
+		engergy_struct->counter++;
     }
 	else{
 		force[0] = 0;
@@ -463,7 +476,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
     else
         hdSetDoublev(HD_CURRENT_JOINT_TORQUE, jointTorque);
 
-    hdSetDoublev(HD_CURRENT_GIMBAL_TORQUE, gimbalTorque);//age 6 daraje azadi bashe (ke male ma nist) torque joint 4-6 ro ham mide
+    //hdSetDoublev(HD_CURRENT_GIMBAL_TORQUE, gimbalTorque);//age 6 daraje azadi bashe (ke male ma nist) torque joint 4-6 ro ham mide
 
 //    printf("%f\t%f\t%f\n\n", jointTorque[0], jointTorque[1], jointTorque[2]);
     /* End haptics frame. */
