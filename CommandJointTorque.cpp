@@ -92,7 +92,10 @@ typedef struct
 {
 	HDdouble energy;
 	HDint counter;
+
 } EnergyStruct;
+
+ofstream csvEnergy;
 
 /*****************************************************************************
  Callback that retrieves state.
@@ -225,7 +228,7 @@ void PrintDeviceState(HDboolean bContinuous)
 
         if (bContinuous)
         {
-       		Sleep(10);
+       		Sleep(1);
         }
 
     } while (!_kbhit() && bContinuous);
@@ -265,16 +268,19 @@ int main(int argc, char* argv[])
         getch();
         
     }
-
+	//ofstream csvEnergy;
+	csvEnergy.open("energy.csv");
 	EnergyStruct e;
+	e.counter = 0;
+	e.energy = 0;
     /* Schedule the main callback that will render forces to the device. */
     hGravityWell = hdScheduleAsynchronous(
         jointTorqueCallback, &e, 
         HD_MAX_SCHEDULER_PRIORITY);
-
+	
     hdEnable(HD_FORCE_OUTPUT);
     hdStartScheduler();
-
+	//csvEnergy << e.energy << endl;
     /* Check for errors and abort if so. */
     if (HD_DEVICE_ERROR(error = hdGetError()))
     {
@@ -291,7 +297,7 @@ int main(int argc, char* argv[])
     /* For cleanup, unschedule callback and stop the scheduler. */
     hdStopScheduler();
     hdUnschedule(hGravityWell);
-
+	csvEnergy.close();
     /* Disable the device. */
     hdDisableDevice(hHD);
 
@@ -344,7 +350,7 @@ void mainLoop()
 HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
 	EnergyStruct* engergy_struct = (EnergyStruct*) data;
-	const HDdouble kStiffness = -0.0065; /* N/mm */
+	const HDdouble kStiffness = 0.075; /* N/mm */
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
  
@@ -362,8 +368,10 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	hduVector3Dd velocity;
 
 	//double energy = 0;
-	int sampleTime = 10;
+	HDdouble sampleTime;
+	HDint currentRate;
 	hduVector3Dd force;
+	hduVector3Dd sensorForce;
     hduVector3Dd positionTwell;
     hduVector3Dd gimbalAngles;
     hduVector3Dd gimbalTorque;
@@ -371,7 +379,6 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
     hduVector3Dd jointAngles;
     hduVector3Dd jointTorque;
     hduVector3Dd jointAngleOfTwist;
-
     HHD hHD = hdGetCurrentDevice();
 
     /* Begin haptics frame.  ( In general, all state-related haptics calls
@@ -383,6 +390,8 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
     hdGetDoublev(HD_CURRENT_GIMBAL_ANGLES,gimbalAngles );
     hdGetDoublev(HD_CURRENT_JOINT_ANGLES,jointAngles );
 	hdGetDoublev(HD_CURRENT_VELOCITY, velocity);
+	//hdGetDoublev(HD_CURRENT_FORCE, sensorForce);
+	hdGetIntegerv(HD_INSTANTANEOUS_UPDATE_RATE, &currentRate);
 
     memset(force, 0, sizeof(hduVector3Dd));
     
@@ -410,18 +419,28 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
            x: Vector from the device endpoint position to the center 
            of the well. */
         //hduVecScale(force, positionTwell, kStiffness);
-		force[0] = -kStiffness*velocity[0];
+		force[0] = kStiffness*positionTwell[0];
+		//force[0] = kStiffness*velocity[0];
 		force[1] = 0;
 		force[2] = 0;
 		//energy = energy + sampleTime*force[0]*velocity[0];
-		engergy_struct->energy += sampleTime*force[0] * velocity[0];
-		engergy_struct->counter++;
+
+
     }
 	else{
 		force[0] = 0;
 		force[1] = 0;
 		force[2] = 0;
 	}
+	sampleTime = 1.0 / currentRate;
+	engergy_struct->energy += sampleTime * force[0] * velocity[0] * -1.0;
+	engergy_struct->counter++;
+	//cout << sampleTime*force[0] * velocity[0] << endl;
+	//cout << engergy_struct->energy << endl;
+	//csvEnergy << engergy_struct->energy << endl;
+	csvEnergy << sampleTime *force[0] * velocity[0] * -1.0 << endl;
+	//cout << 1.0/currentRate << endl;
+
 
     if (hduVecMagnitude(gimbalAngleOfTwist) < kTorqueInfluence)
     {
@@ -480,7 +499,11 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
 //    printf("%f\t%f\t%f\n\n", jointTorque[0], jointTorque[1], jointTorque[2]);
     /* End haptics frame. */
+	//hdGetDoublev(HD_CURRENT_FORCE, sensorForce);
+	//cout << sensorForce[0] << ',' << force[0] << endl;
+
     hdEndFrame(hHD);
+
 
     /* Check for errors and abort the callback if a scheduler error
        is detected. */
@@ -497,6 +520,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
     /* Signify that the callback should continue running, i.e. that
        it will be called again the next scheduler tick. */
+	//csvEnergy.close();
     return HD_CALLBACK_CONTINUE;
 }
 
