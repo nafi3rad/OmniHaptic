@@ -91,6 +91,10 @@ typedef struct//defining a new type
 typedef struct
 {
 	HDdouble energy;
+	HDdouble observedEnergy;
+	HDdouble alpha;
+	HDdouble oldAlpha;
+	hduVector3Dd oldVelocity;
 	HDint counter;
 
 } EnergyStruct;
@@ -123,6 +127,10 @@ void PrintDeviceState(HDboolean bContinuous)
 	ofstream csvTorque;
 	ofstream csvPosition;
 	ofstream csvVelocity;
+	HDdouble energy;
+	HDdouble oldEnergy;
+	energy = 0.0;
+	oldEnergy = 0.0;
 	csvTorque.open("torque.csv");
 	csvPosition.open("position.csv");
 	csvVelocity.open("Velocity.csv");
@@ -185,6 +193,10 @@ void PrintDeviceState(HDboolean bContinuous)
 				csvTorque << state.forceValues[i] << ",";
 			}
         }
+		//energy = oldEnergy + 0.001 * state.forceValues[0] * state.velocityValues[0] * -1.0;
+		//oldEnergy = energy;
+		//csvEnergy << energy << endl;
+
         //printf("\n");
 
         //printf("Current Base Torque Values (mNm):");
@@ -349,7 +361,7 @@ void mainLoop()
 *******************************************************************************/
 HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
-	EnergyStruct* engergy_struct = (EnergyStruct*) data;
+	EnergyStruct* ep = (EnergyStruct*) data;
 	const HDdouble kStiffness = 0.075; /* N/mm */
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
@@ -423,7 +435,6 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		//force[0] = kStiffness*velocity[0];
 		force[1] = 0;
 		force[2] = 0;
-		//energy = energy + sampleTime*force[0]*velocity[0];
 
 
     }
@@ -433,12 +444,39 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		force[2] = 0;
 	}
 	sampleTime = 1.0 / currentRate;
-	engergy_struct->energy += sampleTime * force[0] * velocity[0] * -1.0;
-	engergy_struct->counter++;
+	ep->energy += sampleTime * force[0] * velocity[0] * 1.0;
+
+	/*computing observed energy*/
+	if (ep->counter>0)
+	{
+		ep->observedEnergy += force[0] * velocity[0]+ 
+			ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0];
+	}
+	else
+	{
+		ep->observedEnergy = force[0] * velocity[0];
+	}
+
+	/*computing damping variable*/
+	if (ep->observedEnergy < 0)
+	{
+		ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]);
+	}
+	else
+	{
+		ep->alpha = 0.0;
+	}
+	force[0] += ep->alpha*velocity[0];
+
+	/* updating variables*/
+	ep->counter++;
+	ep->oldVelocity = velocity;
+	ep->oldAlpha = ep->alpha;
 	//cout << sampleTime*force[0] * velocity[0] << endl;
-	//cout << engergy_struct->energy << endl;
-	//csvEnergy << engergy_struct->energy << endl;
-	csvEnergy << sampleTime *force[0] * velocity[0] * -1.0 << endl;
+	//cout << ep->energy << endl;
+	csvEnergy << ep->observedEnergy << endl;
+	//csvEnergy << ep->energy << endl;
+	//csvEnergy << sampleTime *force[0] * velocity[0] * -1.0 << endl;
 	//cout << 1.0/currentRate << endl;
 
 
