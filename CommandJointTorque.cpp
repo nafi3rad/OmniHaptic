@@ -444,17 +444,17 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		force[2] = 0;
 	}
 	sampleTime = 1.0 / currentRate;
-	ep->energy += sampleTime * force[0] * velocity[0] * 1.0;
+	ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
 
-	/*computing observed energy*/
+	 /*computing observed energy*/
 	if (ep->counter>0)
 	{
-		ep->observedEnergy += force[0] * velocity[0]+ 
+		ep->observedEnergy += -force[0] * velocity[0]+ 
 			ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0];
 	}
 	else
 	{
-		ep->observedEnergy = force[0] * velocity[0];
+		ep->observedEnergy = -force[0] * velocity[0];
 	}
 
 	/*computing damping variable*/
@@ -466,7 +466,8 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	{
 		ep->alpha = 0.0;
 	}
-	force[0] += ep->alpha*velocity[0];
+	force[0] += ep->alpha*velocity[0];  
+
 
 	/* updating variables*/
 	ep->counter++;
