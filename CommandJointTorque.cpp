@@ -362,7 +362,7 @@ void mainLoop()
 HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
 	EnergyStruct* ep = (EnergyStruct*) data;
-	const HDdouble kStiffness = 0.075; /* N/mm */
+	const HDdouble kStiffness = 0.0075; /* N/mm */
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
  
@@ -431,8 +431,8 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
            x: Vector from the device endpoint position to the center 
            of the well. */
         //hduVecScale(force, positionTwell, kStiffness);
-		force[0] = kStiffness*positionTwell[0];
-		//force[0] = kStiffness*velocity[0];
+		//force[0] = kStiffness*positionTwell[0];
+		force[0] = kStiffness*velocity[0];
 		force[1] = 0;
 		force[2] = 0;
 
@@ -466,7 +466,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	{
 		ep->alpha = 0.0;
 	}
-	force[0] += ep->alpha*velocity[0];  
+	force[0] -= ep->alpha*velocity[0];  
 
 
 	/* updating variables*/
