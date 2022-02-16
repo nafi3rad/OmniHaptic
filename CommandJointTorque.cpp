@@ -362,7 +362,8 @@ void mainLoop()
 HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
 	EnergyStruct* ep = (EnergyStruct*) data;
-	const HDdouble kStiffness = 0.0075; /* N/mm */
+	const HDdouble kStiffness = 0.1;// 0.075; /* N/mm */positive k is passive
+	const HDdouble bDamping = -0.0015;// 75;positive b is passive
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
  
@@ -432,7 +433,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
            of the well. */
         //hduVecScale(force, positionTwell, kStiffness);
 		//force[0] = kStiffness*positionTwell[0];
-		force[0] = kStiffness*velocity[0];
+		force[0] = -bDamping * velocity[0] + kStiffness*positionTwell[0];
 		force[1] = 0;
 		force[2] = 0;
 
@@ -466,7 +467,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	{
 		ep->alpha = 0.0;
 	}
-	force[0] -= ep->alpha*velocity[0];  
+	//force[0] -= ep->alpha*velocity[0];  
 
 
 	/* updating variables*/
@@ -477,6 +478,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//cout << ep->energy << endl;
 	csvEnergy << ep->observedEnergy << endl;
 	//csvEnergy << ep->energy << endl;
+
 	//csvEnergy << sampleTime *force[0] * velocity[0] * -1.0 << endl;
 	//cout << 1.0/currentRate << endl;
 
