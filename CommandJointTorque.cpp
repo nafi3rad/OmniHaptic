@@ -100,7 +100,11 @@ typedef struct
 } EnergyStruct;
 
 ofstream csvEnergy;
-
+ofstream csvTorque;
+ofstream csvPosition;
+ofstream csvVelocity;
+ofstream csvSampling;
+ofstream csvAlpha;
 /*****************************************************************************
  Callback that retrieves state.
 *****************************************************************************/
@@ -124,16 +128,16 @@ void PrintDeviceState(HDboolean bContinuous)
 {
     int i;
     DeviceStateStruct state;
-	ofstream csvTorque;
-	ofstream csvPosition;
-	ofstream csvVelocity;
+	//ofstream csvTorque;
+	//ofstream csvPosition;
+	//ofstream csvVelocity;
 	HDdouble energy;
 	HDdouble oldEnergy;
 	energy = 0.0;
 	oldEnergy = 0.0;
-	csvTorque.open("torque.csv");
-	csvPosition.open("position.csv");
-	csvVelocity.open("Velocity.csv");
+	//csvTorque.open("torque.csv");
+	//csvPosition.open("position.csv");
+	//csvVelocity.open("Velocity.csv");
     memset(&state, 0, sizeof(DeviceStateStruct));//making all the elements equal to zero, some other values maybe stored in this address
 
     do//do while structure, runs at least once the DO part
@@ -186,11 +190,13 @@ void PrintDeviceState(HDboolean bContinuous)
         {
             printf("%f,", state.forceValues[i]);
 			if (i == 2){
-				csvTorque << state.forceValues[i] << endl;
+				//csvTorque << state.forceValues[i] << endl;
+				cout << state.forceValues[i] << endl;
 			}
 			else
 			{
-				csvTorque << state.forceValues[i] << ",";
+				//csvTorque << state.forceValues[i] << ",";
+				cout << state.forceValues[i] << ",";
 			}
         }
 		//energy = oldEnergy + 0.001 * state.forceValues[0] * state.velocityValues[0] * -1.0;
@@ -216,11 +222,13 @@ void PrintDeviceState(HDboolean bContinuous)
 		{
 			printf("%f,", state.positionValues[i]);
 			if (i == 2){
-				csvPosition << state.positionValues[i] << endl;
+				//csvPosition << state.positionValues[i] << endl;
+				cout << state.positionValues[i] << endl;
 			}
 			else
 			{
-				csvPosition << state.positionValues[i] << ",";
+				//csvPosition << state.positionValues[i] << ",";
+				cout << state.positionValues[i] << ",";
 			}
 		}
 		//
@@ -228,11 +236,13 @@ void PrintDeviceState(HDboolean bContinuous)
 		{
 			printf("%f,", state.velocityValues[i]);
 			if (i == 2){
-				csvVelocity << state.velocityValues[i] << endl;
+				//csvVelocity << state.velocityValues[i] << endl;
+				cout << state.velocityValues[i] << endl;
 			}
 			else
 			{
-				csvVelocity << state.velocityValues[i] << ",";
+				//csvVelocity << state.velocityValues[i] << ",";
+				cout << state.velocityValues[i] << ",";
 			}
 		}
 		//
@@ -244,9 +254,9 @@ void PrintDeviceState(HDboolean bContinuous)
         }
 
     } while (!_kbhit() && bContinuous);
-	csvTorque.close();
-	csvPosition.close();
-	csvVelocity.close();
+	//csvTorque.close();
+	//csvPosition.close();
+	//csvVelocity.close();
 }
 
 /*******************************************************************************
@@ -282,9 +292,15 @@ int main(int argc, char* argv[])
     }
 	//ofstream csvEnergy;
 	csvEnergy.open("energy.csv");
+	csvTorque.open("torque.csv");
+	csvPosition.open("position.csv");
+	csvVelocity.open("Velocity.csv");
+	csvSampling.open("sampling.csv");
+	csvAlpha.open("Alpha.csv");
 	EnergyStruct e;
 	e.counter = 0;
 	e.energy = 0;
+	e.observedEnergy = 0;
     /* Schedule the main callback that will render forces to the device. */
     hGravityWell = hdScheduleAsynchronous(
         jointTorqueCallback, &e, 
@@ -310,6 +326,11 @@ int main(int argc, char* argv[])
     hdStopScheduler();
     hdUnschedule(hGravityWell);
 	csvEnergy.close();
+	csvTorque.close();
+	csvPosition.close();
+	csvVelocity.close();
+	csvSampling.close();
+	csvAlpha.close();
     /* Disable the device. */
     hdDisableDevice(hHD);
 
@@ -363,7 +384,8 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
 	EnergyStruct* ep = (EnergyStruct*) data;
 	const HDdouble kStiffness = 0.1;// 0.075; /* N/mm */positive k is passive
-	const HDdouble bDamping = -0.0015;// 75;positive b is passive
+	const HDdouble khat = 0.09; //estimation of the k
+	const HDdouble bDamping = -0.002;// 75;positive b is passive
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
  
@@ -382,6 +404,8 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
 	//double energy = 0;
 	HDdouble sampleTime;
+	HDdouble ePassive;
+	HDdouble oldEnergy;
 	HDint currentRate;
 	hduVector3Dd force;
 	hduVector3Dd sensorForce;
@@ -437,7 +461,6 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		force[1] = 0;
 		force[2] = 0;
 
-
     }
 	else{
 		force[0] = 0;
@@ -445,8 +468,10 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		force[2] = 0;
 	}
 	sampleTime = 1.0 / currentRate;
+	
 	ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
-
+	ePassive = 0.5*khat*positionTwell[0] * positionTwell[0] / sampleTime;
+	oldEnergy = ep->observedEnergy;
 	 /*computing observed energy*/
 	if (ep->counter>0)
 	{
@@ -458,16 +483,46 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		ep->observedEnergy = -force[0] * velocity[0];
 	}
 
-	/*computing damping variable*/
-	if (ep->observedEnergy < 0)
+	/*computing damping variable in TDPA*/
+	//if (ep->counter > 0)
+	//{
+	//	if (ep->observedEnergy < 0)
+	//	{
+	//		ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]);
+	//	}
+	//	else
+	//	{
+	//		ep->alpha = 0.0;
+	//	}
+	//}
+	//else
+	//{
+	//	ep->alpha = 0.0;
+	//}
+
+	/*computing damping variable in  predictive TDPA*/
+	if (oldEnergy > ep->observedEnergy)///change two ands to one
 	{
-		ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]);
+		if (ep->observedEnergy < ePassive && abs(velocity[0])>1 )
+		{
+			ep->alpha = -(ep->observedEnergy-ePassive) / (velocity[0] * velocity[0]);
+		}
+		else
+		{
+			ep->alpha = 0.0;
+		}
 	}
 	else
 	{
 		ep->alpha = 0.0;
 	}
-	//force[0] -= ep->alpha*velocity[0];  
+
+	if (positionTwell[0] < kForceInfluence)
+	{
+		force[0] -= ep->alpha*velocity[0];
+	}
+		
+
 
 
 	/* updating variables*/
@@ -475,10 +530,15 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	ep->oldVelocity = velocity;
 	ep->oldAlpha = ep->alpha;
 	//cout << sampleTime*force[0] * velocity[0] << endl;
-	//cout << ep->energy << endl;
+	//cout << ep->observedEnergy << endl;
 	csvEnergy << ep->observedEnergy << endl;
+	csvPosition << position[0] << endl;
+	csvVelocity << velocity[0] << endl;
+	csvTorque << force[0] << endl;
+	csvSampling << sampleTime << endl;
+	csvAlpha << ep->alpha << endl;
 	//csvEnergy << ep->energy << endl;
-
+	//csvEnergy << ep->alpha << endl;
 	//csvEnergy << sampleTime *force[0] * velocity[0] * -1.0 << endl;
 	//cout << 1.0/currentRate << endl;
 
