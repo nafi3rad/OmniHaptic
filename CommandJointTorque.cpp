@@ -384,7 +384,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
 	EnergyStruct* ep = (EnergyStruct*) data;
 	const HDdouble kStiffness = 0.1;// 0.075; /* N/mm */positive k is passive
-	const HDdouble khat = 0.09; //estimation of the k
+	const HDdouble khat = 0.1;//timation of the k
 	const HDdouble bDamping = -0.002;// 75;positive b is passive
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
@@ -470,16 +470,16 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	sampleTime = 1.0 / currentRate;
 	
 	ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
-	ePassive = 0.5*khat*positionTwell[0] * positionTwell[0] / sampleTime;
+	ePassive = 0.5*khat*positionTwell[0] * positionTwell[0];
 	oldEnergy = ep->observedEnergy;
 	 /*computing observed energy*/
 	if (ep->counter>0)
 	{
-		ep->observedEnergy += -force[0] * velocity[0];
+		ep->observedEnergy += -force[0] * velocity[0] * sampleTime;
 	}
 	else
 	{
-		ep->observedEnergy = -force[0] * velocity[0];
+		ep->observedEnergy = -force[0] * velocity[0] * sampleTime;
 	}
 
 	/*computing damping variable in TDPA*/
@@ -525,9 +525,9 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
 	if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && positionTwell[0] < kForceInfluence)
 	{
-		ep->observedEnergy += force[0] * velocity[0];
+		ep->observedEnergy += force[0] * velocity[0] * sampleTime;
 		force[0] = khat*positionTwell[0];
-		ep->observedEnergy += -force[0] * velocity[0];
+		ep->observedEnergy += -force[0] * velocity[0] * sampleTime;
 	}
 
 
