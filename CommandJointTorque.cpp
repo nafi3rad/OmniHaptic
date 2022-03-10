@@ -475,8 +475,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	 /*computing observed energy*/
 	if (ep->counter>0)
 	{
-		ep->observedEnergy += -force[0] * velocity[0]+ 
-			ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0];
+		ep->observedEnergy += -force[0] * velocity[0];
 	}
 	else
 	{
@@ -501,28 +500,35 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//}
 
 	/*computing damping variable in  predictive TDPA*/
-	if (oldEnergy > ep->observedEnergy)///change two ands to one
-	{
-		if (ep->observedEnergy < ePassive && abs(velocity[0])>1 )
-		{
-			ep->alpha = -(ep->observedEnergy-ePassive) / (velocity[0] * velocity[0]);
-		}
-		else
-		{
-			ep->alpha = 0.0;
-		}
-	}
-	else
-	{
-		ep->alpha = 0.0;
-	}
+	//if (oldEnergy > ep->observedEnergy)///change two ands to one
+	//{
+	//	if (ep->observedEnergy < ePassive && abs(velocity[0])>1 )
+	//	{
+	//		ep->alpha = -(ep->observedEnergy-ePassive) / (velocity[0] * velocity[0]);
+	//	}
+	//	else
+	//	{
+	//		ep->alpha = 0.0;
+	//	}
+	//}
+	//else
+	//{
+	//	ep->alpha = 0.0;
+	//}
 
-	if (positionTwell[0] < kForceInfluence)
-	{
-		force[0] -= ep->alpha*velocity[0];
-	}
+	//if (positionTwell[0] < kForceInfluence)
+	//{
+	//	force[0] -= ep->alpha*velocity[0];
+	//}
 		
+	/*force refrence TDPA*/
 
+	if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && positionTwell[0] < kForceInfluence)
+	{
+		ep->observedEnergy += force[0] * velocity[0];
+		force[0] = khat*positionTwell[0];
+		ep->observedEnergy += -force[0] * velocity[0];
+	}
 
 
 	/* updating variables*/

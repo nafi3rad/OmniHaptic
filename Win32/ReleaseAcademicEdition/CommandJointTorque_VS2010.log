@@ -1,24 +1,24 @@
-﻿Build started 1/31/2022 1:39:13 PM.
-     1>Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" on node 2 (Rebuild target(s)).
+﻿Build started 3/9/2022 4:39:30 PM.
+     1>Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\OpenHaptics\Academic\3.1\include /IC:\OpenHaptics\Academic\3.1\utilities\include /Zi /nologo /W3 /WX- /O2 /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Win32\ReleaseAcademicEdition\\" /Fd"Win32\ReleaseAcademicEdition\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt CommandJointTorque.cpp
          CommandJointTorque.cpp
-     1>CommandJointTorque.cpp(248): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(279): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
-     1>CommandJointTorque.cpp(259): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(290): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
-     1>CommandJointTorque.cpp(306): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(352): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
-     1>CommandJointTorque.cpp(326): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(372): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
-     1>CommandJointTorque.cpp(502): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(646): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
-     1>CommandJointTorque.cpp(511): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(655): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
        Link:
          D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Win32\ReleaseAcademicEdition\CommandJointTorque.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32\ReleaseAcademicEdition /LIBPATH:C:\OpenHaptics\Academic\3.1\utilities\lib\Win32\ReleaseAcademicEdition /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32 hd.lib hdu.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Win32\ReleaseAcademicEdition\CommandJointTorque.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Win32\ReleaseAcademicEdition\CommandJointTorque.lib" /MACHINE:X86 /SAFESEH Win32\ReleaseAcademicEdition\CommandJointTorque.obj
          Generating code
-     1>f:\nafise\git\omnihaptic\commandjointtorque.cpp(525): warning C4715: 'initDemo' : not all control paths return a value
+     1>f:\nafise\git\omnihaptic\commandjointtorque.cpp(669): warning C4715: 'initDemo' : not all control paths return a value
          Finished generating code
          CommandJointTorque_VS2010.vcxproj -> F:\Nafise\git\OmniHaptic\Win32\ReleaseAcademicEdition\CommandJointTorque.exe
        PostBuildEvent:
@@ -26,9 +26,10 @@
          mkdir F:\Nafise\git\OmniHaptic\\..\..\bin\Win32\HD
          copy "Win32\ReleaseAcademicEdition\\CommandJointTorque.exe" "F:\Nafise\git\OmniHaptic\\..\..\bin\Win32\HD
          :VCEnd
+         A subdirectory or file F:\Nafise\git\OmniHaptic\\..\..\bin\Win32\HD already exists.
                  1 file(s) copied.
-     1>Done Building Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" (Rebuild target(s)).
+     1>Done Building Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:03.69
+Time Elapsed 00:00:01.29
