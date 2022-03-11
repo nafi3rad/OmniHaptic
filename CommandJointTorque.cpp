@@ -384,7 +384,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
 	EnergyStruct* ep = (EnergyStruct*) data;
 	const HDdouble kStiffness = 0.1;// 0.075; /* N/mm */positive k is passive
-	const HDdouble khat = 0.09; //estimation of the k
+	const HDdouble khat = 0.1; //estimation of the k
 	const HDdouble bDamping = -0.002;// 75;positive b is passive
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
@@ -418,6 +418,9 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
     hduVector3Dd jointAngleOfTwist;
     HHD hHD = hdGetCurrentDevice();
 
+	const HDdouble irr = 0.1;
+	HDdouble printEnergy;
+
     /* Begin haptics frame.  ( In general, all state-related haptics calls
        should be made within a frame. ) */
     hdBeginFrame(hHD);
@@ -431,7 +434,9 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	hdGetIntegerv(HD_INSTANTANEOUS_UPDATE_RATE, &currentRate);
 
     memset(force, 0, sizeof(hduVector3Dd));
-    
+
+	/*filter velocity*/
+	velocity[0] = irr * velocity[0] + (1 - irr) * (ep->oldVelocity[0]);
 
     /* >  positionTwell = wellPos-position  < 
        Create a vector from the device position towards the gravity 
@@ -503,7 +508,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	/*computing damping variable in  predictive TDPA*/
 	if (oldEnergy > ep->observedEnergy)///change two ands to one
 	{
-		if (ep->observedEnergy < ePassive && abs(velocity[0])>1 )
+		if (ep->observedEnergy < ePassive)// && abs(velocity[0])>1 )
 		{
 			ep->alpha = -(ep->observedEnergy-ePassive) / (velocity[0] * velocity[0]);
 		}
@@ -529,9 +534,11 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	ep->counter++;
 	ep->oldVelocity = velocity;
 	ep->oldAlpha = ep->alpha;
+	printEnergy = oldEnergy - force[0] * velocity[0];
+	csvEnergy << printEnergy << endl;
 	//cout << sampleTime*force[0] * velocity[0] << endl;
 	//cout << ep->observedEnergy << endl;
-	csvEnergy << ep->observedEnergy << endl;
+	//csvEnergy << ep->observedEnergy << endl;
 	csvPosition << position[0] << endl;
 	csvVelocity << velocity[0] << endl;
 	csvTorque << force[0] << endl;
