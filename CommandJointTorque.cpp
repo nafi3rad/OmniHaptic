@@ -406,6 +406,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	HDdouble sampleTime;
 	HDdouble ePassive;
 	HDdouble oldEnergy;
+	HDdouble printEnergy;
 	HDint currentRate;
 	hduVector3Dd force;
 	hduVector3Dd sensorForce;
@@ -417,6 +418,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
     hduVector3Dd jointTorque;
     hduVector3Dd jointAngleOfTwist;
     HHD hHD = hdGetCurrentDevice();
+	const HDdouble irr = 0.1;
 
     /* Begin haptics frame.  ( In general, all state-related haptics calls
        should be made within a frame. ) */
@@ -432,6 +434,11 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
     memset(force, 0, sizeof(hduVector3Dd));
     
+	/*filter velocity*/
+	velocity[0] = irr * velocity[0] + (1 - irr) * (ep->oldVelocity[0]);
+
+
+
 
     /* >  positionTwell = wellPos-position  < 
        Create a vector from the device position towards the gravity 
@@ -523,7 +530,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	}
 		
 
-
+	printEnergy = oldEnergy - force[0] * velocity[0];
 
 	/* updating variables*/
 	ep->counter++;
@@ -531,7 +538,8 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	ep->oldAlpha = ep->alpha;
 	//cout << sampleTime*force[0] * velocity[0] << endl;
 	//cout << ep->observedEnergy << endl;
-	csvEnergy << ep->observedEnergy << endl;
+	csvEnergy << printEnergy << endl;
+	//csvEnergy << ep->observedEnergy << endl;
 	csvPosition << position[0] << endl;
 	csvVelocity << velocity[0] << endl;
 	csvTorque << force[0] << endl;
