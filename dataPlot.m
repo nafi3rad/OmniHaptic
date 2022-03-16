@@ -61,14 +61,14 @@ ylabel('Force(N)')
 EE=E';
 %figure(4)
 subplot(5,1,5)
-plot(t,Eob.*sT)
+plot(t,Eob)
 grid on
 xlabel('Time(sec)')
 ylabel('Energy(N.mm)')
 %title('X')
 
 figure()
-plot(t,Eob.*sT)
+plot(t,Eob)
 
 hold on
 plot(t,EE)
@@ -92,7 +92,7 @@ ylabel('Velocity(mm/s)')
 EE=E';
 %figure(4)
 subplot(3,1,3)
-plot(t,Eob.*sT)
+plot(t,Eob)
 grid on
 xlabel('Time(sec)')
 ylabel('Energy(N.mm)')
