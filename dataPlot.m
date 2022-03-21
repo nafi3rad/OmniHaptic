@@ -29,6 +29,7 @@ end
 %        E2(i)=-1*F(i*2,1)*V(i*2,1)*sT*2+E2(i-1); 
 %     end
 % end        
+figure_handle = figure;
 figure(1)
 %figure(2)
 subplot(5,1,1)
@@ -74,26 +75,30 @@ hold on
 plot(t,EE)
 
 figure()
-%figure(2)
-subplot(3,1,1)
-plot(t,P(:,1))
-grid on
-%xlabel('Time(sec)')
-ylabel('Position(mm)')
-title('X axis')
-%figure()
-subplot(3,1,2)
-plot(t,V(:,1))
-grid on
-%xlabel('Time(sec)')
-ylabel('Velocity(mm/s)')
-%title('X axis')
+% %figure(2)
+% subplot(3,1,1)
+% plot(t,P(:,1))
+% grid on
+% %xlabel('Time(sec)')
+% ylabel('Position(mm)')
+% title('X axis')
+% %figure()
+% subplot(3,1,2)
+% plot(t,V(:,1))
+% grid on
+% %xlabel('Time(sec)')
+% ylabel('Velocity(mm/s)')
+% %title('X axis')
 
 EE=E';
 %figure(4)
-subplot(3,1,3)
+%subplot(3,1,3)
 plot(t,Eob)
+hold on
+plot(t,0.5*0.08*P.^2)
 grid on
 xlabel('Time(sec)')
 ylabel('Energy(N.mm)')
 %title('X')
+all_ha = findobj( figure_handle, 'type', 'axes', 'tag', '' );
+linkaxes( all_ha, 'x' );
