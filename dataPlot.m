@@ -29,7 +29,8 @@ end
 %     else
 %        E2(i)=-1*F(i*2,1)*V(i*2,1)*sT*2+E2(i-1); 
 %     end
-% end        
+% end   
+figure_handle = figure;
 figure(1)
 %figure(2)
 subplot(5,1,1)
@@ -89,7 +90,8 @@ grid on
 %xlabel('Time(sec)')
 ylabel('Velocity(mm/s)')
 %title('X axis')
-
+all_ha = findobj( figure_handle, 'type', 'axes', 'tag', '' );
+linkaxes( all_ha, 'x' );
 EE=E';
 %figure(4)
 subplot(3,1,3)
