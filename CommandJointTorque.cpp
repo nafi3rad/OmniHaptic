@@ -96,6 +96,8 @@ typedef struct
 	HDdouble oldAlpha;
 	hduVector3Dd oldVelocity;
 	HDint counter;
+	HDdouble oldP;
+	HDdouble oldkhat;
 
 } EnergyStruct;
 
@@ -105,6 +107,7 @@ ofstream csvPosition;
 ofstream csvVelocity;
 ofstream csvSampling;
 ofstream csvAlpha;
+ofstream csvKhat;
 /*****************************************************************************
  Callback that retrieves state.
 *****************************************************************************/
@@ -296,7 +299,8 @@ int main(int argc, char* argv[])
 	csvPosition.open("position.csv");
 	csvVelocity.open("Velocity.csv");
 	csvSampling.open("sampling.csv");
-	csvAlpha.open("Alpha.csv");
+	csvAlpha.open("Alpha.csv"); 
+	csvKhat.open("khat.csv");
 	EnergyStruct e;
 	e.counter = 0;
 	e.energy = 0.0;
@@ -304,6 +308,8 @@ int main(int argc, char* argv[])
 	e.oldAlpha = 0.0;
 	e.oldVelocity[0] = 0.0;
 	e.alpha = 0.0;
+	e.oldkhat = 0.0;
+	e.oldP = 0.1;
 
     /* Schedule the main callback that will render forces to the device. */
     hGravityWell = hdScheduleAsynchronous(
@@ -335,6 +341,7 @@ int main(int argc, char* argv[])
 	csvVelocity.close();
 	csvSampling.close();
 	csvAlpha.close();
+	csvKhat.close();
     /* Disable the device. */
     hdDisableDevice(hHD);
 
@@ -388,7 +395,8 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 {
 	EnergyStruct* ep = (EnergyStruct*) data;
 	const HDdouble kStiffness = 0.1;// 0.075; /* N/mm */positive k is passive
-	const HDdouble khat = 0.08; //estimation of the k
+	HDdouble khat; //estimation of the k
+	const HDdouble constkhat = 0.08; //estimation of the k
 	const HDdouble bDamping = -0.002;// 75;positive b is passive
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
@@ -421,8 +429,12 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
     hduVector3Dd jointTorque;
     hduVector3Dd jointAngleOfTwist;
     HHD hHD = hdGetCurrentDevice();
+	HDdouble l;
+	HDdouble p;
+	HDdouble z;
+	const HDdouble lambda=0.9;
 
-	const HDdouble irr = 0.9;
+	const HDdouble irr = 0.1;
 	HDdouble printEnergy;
 
     /* Begin haptics frame.  ( In general, all state-related haptics calls
@@ -477,9 +489,10 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		force[2] = 0;
 	}
 	sampleTime = 1.0 / currentRate;
-	
+	//sampleTime = 0.001;
 	ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
-	ePassive = 0.5*khat*positionTwell[0] * positionTwell[0] ;
+	
+
 	/*using -velocity instead of deltaPos/T */
 	//ePassive = -1*khat*positionTwell[0] * velocity[0];//wrong : it should be summation
 
@@ -501,7 +514,24 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		ep->observedEnergy = -force[0] * velocity[0] * sampleTime;
 	}
 
-	/*computing damping variable in TDPA*/
+	/*RLS*/
+	if (oldEnergy < ep->observedEnergy)
+	{
+		z = 0.5*positionTwell[0] * positionTwell[0];
+		l = ep->oldP*z / (lambda + z*ep->oldP*z);
+		p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
+		khat = ep->oldkhat + l*(ep->observedEnergy - z*ep->oldkhat);
+	}
+	else
+	{
+		khat = ep->oldkhat;
+	}
+	//updating old variables;
+	ep->oldP = p;
+	ep->oldkhat = khat;
+
+	ePassive = 0.5*khat*positionTwell[0] * positionTwell[0];
+	/*computing damping variable in TDPA*2/
 	//if (ep->counter > 0)
 	//{
 	//	if (ep->observedEnergy < 0)
@@ -519,7 +549,9 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//}
 
 	/*computing damping variable in  predictive TDPA*/
-	if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && abs(velocity[0])>1)///change two ands to one
+
+
+	if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && abs(velocity[0])>3)///change two ands to one
 	{
 		ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime);
 	}
@@ -549,6 +581,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	csvTorque << force[0] << endl;
 	csvSampling << sampleTime << endl;
 	csvAlpha << ep->alpha << endl;
+	csvKhat << khat << endl;
 	//csvEnergy << ep->energy << endl;
 	//csvEnergy << ep->alpha << endl;
 	//csvEnergy << sampleTime *force[0] * velocity[0] * -1.0 << endl;

@@ -9,6 +9,7 @@ V=csvread('Velocity.csv');
 sT=csvread('sampling.csv');
 al=csvread('Alpha.csv');
 Eob=csvread('Energy.csv');
+khat2=csvread('khat.csv');
 %sT=0.001;
 %t=(0:sT:sT*length(F)-sT)';
 %Power=-1*F(:,1).*V(:,1)*sT;
@@ -64,8 +65,11 @@ EE=E';
 subplot(5,1,5)
 plot(t,Eob)
 grid on
+hold on
+plot(t,0.5*P.^2.*khat2)
 xlabel('Time(sec)')
 ylabel('Energy(N.mm)')
+legend('actual','spring')
 %title('X')
 
 figure()
@@ -95,10 +99,12 @@ EE=E';
 %subplot(3,1,3)
 plot(t,Eob)
 hold on
-plot(t,0.5*0.08*P.^2)
+plot(t,0.5*P.^2.*khat2)
 grid on
 xlabel('Time(sec)')
 ylabel('Energy(N.mm)')
 %title('X')
 all_ha = findobj( figure_handle, 'type', 'axes', 'tag', '' );
 linkaxes( all_ha, 'x' );
+figure();
+plot(khat2)
