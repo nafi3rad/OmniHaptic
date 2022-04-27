@@ -108,6 +108,7 @@ ofstream csvVelocity;
 ofstream csvSampling;
 ofstream csvAlpha;
 ofstream csvKhat;
+ofstream csvControlForce;
 /*****************************************************************************
  Callback that retrieves state.
 *****************************************************************************/
@@ -301,6 +302,7 @@ int main(int argc, char* argv[])
 	csvSampling.open("sampling.csv");
 	csvAlpha.open("Alpha.csv"); 
 	csvKhat.open("khat.csv");
+	csvControlForce.open("ControlForce.csv");
 	EnergyStruct e;
 	e.counter = 0;
 	e.energy = 0.0;
@@ -342,6 +344,7 @@ int main(int argc, char* argv[])
 	csvSampling.close();
 	csvAlpha.close();
 	csvKhat.close();
+	csvControlForce.close();
     /* Disable the device. */
     hdDisableDevice(hHD);
 
@@ -420,6 +423,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	HDdouble oldEnergy;
 	HDint currentRate;
 	hduVector3Dd force;
+	hduVector3Dd controlForce;
 	hduVector3Dd sensorForce;
     hduVector3Dd positionTwell;
     hduVector3Dd gimbalAngles;
@@ -488,6 +492,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		force[1] = 0;
 		force[2] = 0;
 	}
+	controlForce = force;
 	sampleTime = 1.0 / currentRate;
 	//sampleTime = 0.001;
 	ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
@@ -515,17 +520,18 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	}
 
 	/*RLS*/
-	if (oldEnergy < ep->observedEnergy)
-	{
-		z = 0.5*positionTwell[0] * positionTwell[0];
-		l = ep->oldP*z / (lambda + z*ep->oldP*z);
-		p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
-		khat = ep->oldkhat + l*(ep->observedEnergy - z*ep->oldkhat);
-	}
-	else
-	{
-		khat = ep->oldkhat;
-	}
+	//if (oldEnergy < ep->observedEnergy)
+	//{
+	//	z = 0.5*positionTwell[0] * positionTwell[0];
+	//	l = ep->oldP*z / (lambda + z*ep->oldP*z);
+	//	p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
+	//	khat = ep->oldkhat + l*(ep->observedEnergy - z*ep->oldkhat);
+	//}
+	//else
+	//{
+	//	khat = ep->oldkhat;
+	//}
+	khat = 0.1;
 	//updating old variables;
 	ep->oldP = p;
 	ep->oldkhat = khat;
@@ -536,7 +542,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//{
 	//	if (ep->observedEnergy < 0)
 	//	{
-	//		ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]);
+	//		ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]* sampleTime);
 	//	}
 	//	else
 	//	{
@@ -545,13 +551,29 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//}
 	//else
 	//{
-	//	ep->alpha = 0.0;
+	//	ep->alpha = 0.0;q
 	//}
 
 	/*computing damping variable in  predictive TDPA*/
 
 
-	if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && abs(velocity[0])>3)///change two ands to one
+	//if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && abs(velocity[0])>3)///change two ands to one
+	//{
+	//	ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime);
+	//}
+	//else
+	//{
+	//	ep->alpha = 0.0;
+	//}
+
+	//if (positionTwell[0] < kForceInfluence)
+	//{
+	//	force[0] -= ep->alpha*velocity[0];
+	//}
+		
+	/*energy reference TDPA*/
+
+	if (ep->observedEnergy < ePassive && abs(velocity[0])>1)///change two ands to one
 	{
 		ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime);
 	}
@@ -564,8 +586,6 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	{
 		force[0] -= ep->alpha*velocity[0];
 	}
-		
-
 
 	/* updating variables*/
 	ep->counter++;
@@ -582,6 +602,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	csvSampling << sampleTime << endl;
 	csvAlpha << ep->alpha << endl;
 	csvKhat << khat << endl;
+	csvControlForce << controlForce[0] << endl;
 	//csvEnergy << ep->energy << endl;
 	//csvEnergy << ep->alpha << endl;
 	//csvEnergy << sampleTime *force[0] * velocity[0] * -1.0 << endl;
