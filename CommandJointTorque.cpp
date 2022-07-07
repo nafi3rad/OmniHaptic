@@ -26,6 +26,7 @@ Description:
 #include <assert.h>
 #include <fstream>
 #include <iostream>
+#include <queue>
 using namespace std;
 
 #if defined(WIN32)
@@ -98,7 +99,8 @@ typedef struct
 	HDint counter;
 	HDdouble oldP;
 	HDdouble oldkhat;
-
+	HDdouble Emaxp;
+	queue<hduVector3Dd> force_history;
 } EnergyStruct;
 
 ofstream csvEnergy;
@@ -311,7 +313,11 @@ int main(int argc, char* argv[])
 	e.oldVelocity[0] = 0.0;
 	e.alpha = 0.0;
 	e.oldkhat = 0.0;
-	e.oldP = 0.1;
+	e.oldP = 100000;
+	e.Emaxp = 0.0;
+	HDdouble maxStif;
+	HDdouble maxDamp;
+
 
     /* Schedule the main callback that will render forces to the device. */
     hGravityWell = hdScheduleAsynchronous(
@@ -319,6 +325,7 @@ int main(int argc, char* argv[])
         HD_MAX_SCHEDULER_PRIORITY);
 	
     hdEnable(HD_FORCE_OUTPUT);
+	hdSetSchedulerRate(1000);
     hdStartScheduler();
 	//csvEnergy << e.energy << endl;
     /* Check for errors and abort if so. */
@@ -333,7 +340,10 @@ int main(int argc, char* argv[])
 
     /* Start the main application loop */
     mainLoop();
-
+	hdGetDoublev(HD_NOMINAL_MAX_STIFFNESS, &maxStif);
+	cout << maxStif << endl;
+	hdGetDoublev(HD_NOMINAL_MAX_DAMPING, &maxDamp);
+	cout << maxDamp << endl;
     /* For cleanup, unschedule callback and stop the scheduler. */
     hdStopScheduler();
     hdUnschedule(hGravityWell);
@@ -406,6 +416,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
  
     const HDdouble kForceInfluence = 0.0; /* mm */
 	const HDdouble kTorqueInfluence = 0.0;//3.14; /* radians */
+	const HDdouble SampleTime = 0.001;
 
     /* This is the position of the gravity well in cartesian
        (i.e. x,y,z) space. */
@@ -436,9 +447,9 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	HDdouble l;
 	HDdouble p;
 	HDdouble z;
-	const HDdouble lambda=0.9;
+	const HDdouble lambda=1;
 
-	const HDdouble irr = 0.1;
+	const HDdouble irr = 1;
 	HDdouble printEnergy;
 
     /* Begin haptics frame.  ( In general, all state-related haptics calls
@@ -454,7 +465,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	hdGetIntegerv(HD_INSTANTANEOUS_UPDATE_RATE, &currentRate);
 
     memset(force, 0, sizeof(hduVector3Dd));
-
+	memset(controlForce, 0, sizeof(hduVector3Dd));
 	/*filter velocity*/
 	velocity[0] = irr * velocity[0] + (1 - irr) * (ep->oldVelocity[0]);
 
@@ -482,18 +493,26 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
            of the well. */
         //hduVecScale(force, positionTwell, kStiffness);
 		//force[0] = kStiffness*positionTwell[0];
-		force[0] = -bDamping * velocity[0] + kStiffness*positionTwell[0];
-		force[1] = 0;
-		force[2] = 0;
+		controlForce[0] = -bDamping * velocity[0] + kStiffness*positionTwell[0];
+		controlForce[1] = 0;
+		controlForce[2] = 0;
 
     }
 	else{
-		force[0] = 0;
-		force[1] = 0;
-		force[2] = 0;
+		controlForce[0] = 0;
+		controlForce[1] = 0;
+		controlForce[2] = 0;
 	}
-	controlForce = force;
-	sampleTime = 1.0 / currentRate;
+	force = controlForce ;
+
+	//ep->force_history.push(controlForce);
+	//if (ep->force_history.size() == 2) {
+	//	force = ep->force_history.front();
+	//	ep->force_history.pop();
+	//}
+	//cout << force[0] << endl;
+
+	sampleTime = 1.0 / currentRate;//SampleTime;
 	//sampleTime = 0.001;
 	ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
 	
@@ -519,28 +538,42 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		ep->observedEnergy = -force[0] * velocity[0] * sampleTime;
 	}
 
-	/*RLS*/
-	//if (oldEnergy < ep->observedEnergy)
-	//{
-	//	z = 0.5*positionTwell[0] * positionTwell[0];
-	//	l = ep->oldP*z / (lambda + z*ep->oldP*z);
-	//	p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
-	//	khat = ep->oldkhat + l*(ep->observedEnergy - z*ep->oldkhat);
+	//Emax
+	//if (ep->observedEnergy > oldEnergy)
+	//{ 
+	//	if (ep->observedEnergy > ep->Emaxp)
+	//	{
+	//		ep->Emaxp = ep->observedEnergy;
+	//	}
 	//}
 	//else
 	//{
-	//	khat = ep->oldkhat;
+	//	ep->Emaxp = 0.0001;
 	//}
-	khat = 0.1;
+	
+	/*RLS*/
+	if (oldEnergy < ep->observedEnergy)
+	{
+		z = 0.5*positionTwell[0] * positionTwell[0];
+		l = ep->oldP*z / (lambda + z*ep->oldP*z);
+		p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
+		khat = ep->oldkhat + l*(ep->observedEnergy - z*ep->oldkhat);
+	}
+	else
+	{
+		khat = ep->oldkhat;
+	}
+	//khat = 0.1;
 	//updating old variables;
 	ep->oldP = p;
 	ep->oldkhat = khat;
 
 	ePassive = 0.5*khat*positionTwell[0] * positionTwell[0];
-	/*computing damping variable in TDPA*2/
+	/*computing damping variable in TDPA*/
+
 	//if (ep->counter > 0)
 	//{
-	//	if (ep->observedEnergy < 0)
+	//	if (ep->observedEnergy <= 0.0 && abs(velocity[0])>15)
 	//	{
 	//		ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]* sampleTime);
 	//	}
@@ -551,13 +584,29 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//}
 	//else
 	//{
-	//	ep->alpha = 0.0;q
+	//	ep->alpha = 0.0;
 	//}
 
 	/*computing damping variable in  predictive TDPA*/
 
 
-	//if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && abs(velocity[0])>3)///change two ands to one
+	if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && abs(velocity[0])>15)///change two ands to one
+	{
+		ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime);// *(1 - ep->observedEnergy / (ep->Emaxp + 0.00001));
+	}
+	else
+	{
+		ep->alpha = 0.0;
+	}
+
+	if (positionTwell[0] < kForceInfluence)
+	{
+		force[0] -= ep->alpha*velocity[0];
+	}
+	//	
+	/*energy reference TDPA*/
+
+	//if (ep->observedEnergy < ePassive && abs(velocity[0])>1)///change two ands to one
 	//{
 	//	ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime);
 	//}
@@ -570,22 +619,6 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//{
 	//	force[0] -= ep->alpha*velocity[0];
 	//}
-		
-	/*energy reference TDPA*/
-
-	if (ep->observedEnergy < ePassive && abs(velocity[0])>1)///change two ands to one
-	{
-		ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime);
-	}
-	else
-	{
-		ep->alpha = 0.0;
-	}
-
-	if (positionTwell[0] < kForceInfluence)
-	{
-		force[0] -= ep->alpha*velocity[0];
-	}
 
 	/* updating variables*/
 	ep->counter++;
