@@ -100,6 +100,9 @@ typedef struct
 	HDdouble oldP;
 	HDdouble oldkhat;
 	HDdouble Emaxp;
+	HDdouble oldx;
+	HDdouble oldFpc;
+	HDdouble oldFc;
 	queue<hduVector3Dd> force_history;
 } EnergyStruct;
 
@@ -313,8 +316,11 @@ int main(int argc, char* argv[])
 	e.oldVelocity[0] = 0.0;
 	e.alpha = 0.0;
 	e.oldkhat = 0.0;
-	e.oldP = 100000;
+	e.oldP = 0.1;
 	e.Emaxp = 0.0;
+	e.oldFc = 0.0;
+	e.oldFpc = 0.0;
+	e.oldx = 0.0;
 	HDdouble maxStif;
 	HDdouble maxDamp;
 
@@ -435,6 +441,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	HDint currentRate;
 	hduVector3Dd force;
 	hduVector3Dd controlForce;
+	hduVector3Dd Forcedx;
 	hduVector3Dd sensorForce;
     hduVector3Dd positionTwell;
     hduVector3Dd gimbalAngles;
@@ -466,6 +473,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
     memset(force, 0, sizeof(hduVector3Dd));
 	memset(controlForce, 0, sizeof(hduVector3Dd));
+	memset(Forcedx, 0, sizeof(hduVector3Dd));
 	/*filter velocity*/
 	velocity[0] = irr * velocity[0] + (1 - irr) * (ep->oldVelocity[0]);
 
@@ -503,10 +511,10 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		controlForce[1] = 0;
 		controlForce[2] = 0;
 	}
-	force = controlForce ;
+	Forcedx = -controlForce ;
 
 	//ep->force_history.push(controlForce);
-	//if (ep->force_history.size() == 2) {
+	//if (ep->force_history.size() == 51){
 	//	force = ep->force_history.front();
 	//	ep->force_history.pop();
 	//}
@@ -514,7 +522,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
 	sampleTime = 1.0 / currentRate;//SampleTime;
 	//sampleTime = 0.001;
-	ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
+	//ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
 	
 
 	/*using -velocity instead of deltaPos/T */
@@ -523,20 +531,20 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//oldEnergy = ep->observedEnergy+ 
 			//ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0];
 	 /*computing observed energy*/
-	if (ep->counter>0)
-	{
-		oldEnergy = ep->observedEnergy +
-			ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0] * sampleTime;
+	//if (ep->counter>0)
+	//{
+	//	oldEnergy = ep->observedEnergy +
+	//		ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0] * sampleTime;
 
-		ep->observedEnergy += -force[0] * velocity[0] * sampleTime+ 
-			ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0] * sampleTime;
-	}
-	else
-	{
-		oldEnergy = 0.0;
+	//	ep->observedEnergy += -force[0] * velocity[0] * sampleTime+ 
+	//		ep->oldAlpha * ep->oldVelocity[0] * ep->oldVelocity[0] * sampleTime;
+	//}
+	//else
+	//{
+	//	oldEnergy = 0.0;
 
-		ep->observedEnergy = -force[0] * velocity[0] * sampleTime;
-	}
+	//	ep->observedEnergy = -force[0] * velocity[0] * sampleTime;
+	//}
 
 	//Emax
 	//if (ep->observedEnergy > oldEnergy)
@@ -552,28 +560,28 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//}
 	
 	/*RLS*/
-	if (oldEnergy < ep->observedEnergy)
-	{
-		z = 0.5*positionTwell[0] * positionTwell[0];
-		l = ep->oldP*z / (lambda + z*ep->oldP*z);
-		p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
-		khat = ep->oldkhat + l*(ep->observedEnergy - z*ep->oldkhat);
-	}
-	else
-	{
-		khat = ep->oldkhat;
-	}
-	//khat = 0.1;
-	//updating old variables;
-	ep->oldP = p;
-	ep->oldkhat = khat;
+	//if (oldEnergy < ep->observedEnergy)
+	//{
+	//	z = 0.5*positionTwell[0] * positionTwell[0];
+	//	l = ep->oldP*z / (lambda + z*ep->oldP*z);
+	//	p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
+	//	khat = ep->oldkhat + l*(ep->observedEnergy - z*ep->oldkhat);
+	//}
+	//else
+	//{
+	//	khat = ep->oldkhat;
+	//}
+	////khat = 0.1;
+	////updating old variables;
+	//ep->oldP = p;
+	//ep->oldkhat = khat;
 
-	ePassive = 0.5*khat*positionTwell[0] * positionTwell[0];
+	//ePassive = 0.5*khat*positionTwell[0] * positionTwell[0];
 	/*computing damping variable in TDPA*/
 
 	//if (ep->counter > 0)
 	//{
-	//	if (ep->observedEnergy <= 0.0 && abs(velocity[0])>15)
+	//	if (ep->observedEnergy <= 0.0 && abs(velocity[0])>0.1)
 	//	{
 	//		ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]* sampleTime);
 	//	}
@@ -586,23 +594,27 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//{
 	//	ep->alpha = 0.0;
 	//}
-
+	//if (abs(velocity[0]) < 0.1){
+	//	ep->alpha = ep->oldAlpha;
+	//}
 	/*computing damping variable in  predictive TDPA*/
 
 
-	if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive && abs(velocity[0])>15)///change two ands to one
-	{
-		ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime);// *(1 - ep->observedEnergy / (ep->Emaxp + 0.00001));
-	}
-	else
-	{
-		ep->alpha = 0.0;
-	}
-
-	if (positionTwell[0] < kForceInfluence)
-	{
-		force[0] -= ep->alpha*velocity[0];
-	}
+	//if (oldEnergy > ep->observedEnergy && ep->observedEnergy < ePassive)// && abs(velocity[0])>15)///change two ands to one
+	//{
+	//	ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime+0.0001);// *(1 - ep->observedEnergy / (ep->Emaxp + 0.00001));
+	//}
+	//else
+	//{
+	//	ep->alpha = 0.0;
+	//}
+	//if (abs(velocity[0]) < 15){
+	//	ep->alpha = ep->oldAlpha;
+	//}
+	//if (positionTwell[0] < kForceInfluence)
+	//{
+	//	force[0] -= ep->alpha*velocity[0];
+	//}
 	//	
 	/*energy reference TDPA*/
 
@@ -619,6 +631,67 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//{
 	//	force[0] -= ep->alpha*velocity[0];
 	//}
+
+	/* Adaptive with dx*/
+		HDdouble dx;
+		HDdouble Fpc;
+		HDdouble Fc;
+		const HDdouble delta = 0.0001;
+		const HDdouble Fmax = 7.9;
+		oldEnergy = ep->observedEnergy;//add a for loop if initial is not zero
+
+		if (oldEnergy > ep->energy)
+		{
+			z = 0.5*ep->oldx * ep->oldx;
+			l = ep->oldP*z / (lambda + z*ep->oldP*z);
+			p = (1 / lambda)*(ep->oldP - l*z*ep->oldP);
+			khat = ep->oldkhat + l*(oldEnergy - z*ep->oldkhat);
+		}
+		else
+		{
+			khat = ep->oldkhat;
+		}
+		//khat = 0.1;
+		//updating old variables;
+		ep->oldP = p;
+		ep->oldkhat = khat;
+
+		ePassive = 0.5*khat*positionTwell[0] * positionTwell[0]*0.0;
+	dx = position[0] - ep->oldx;
+	if (position[0] < 0.0){
+		Fpc = 0.0;
+		ep->observedEnergy = oldEnergy;
+	}
+	else{
+		if (dx<=delta && dx>=-delta){
+			Fpc = ep->oldFpc;
+			ep->observedEnergy = oldEnergy + ep->oldFc*dx;
+		}
+		else{
+			ep->observedEnergy = oldEnergy + ep->oldFc*dx;
+			if (ep->observedEnergy < ePassive){
+				Fpc = -(ep->observedEnergy - ePassive) / dx;
+			}
+			else{
+				Fpc = 0.0;
+			}
+		}
+	}
+	Fc = Forcedx[0] + Fpc;
+	if (Fc>Fmax){
+		Fc = Fmax;
+		Fpc = (Fmax - (Forcedx[0]));
+	}
+	if (Fc < -Fmax){
+		Fc = -Fmax;
+		Fpc = (-Fmax - (Forcedx[0]));
+	}
+		force[0] = -Fc;
+	//updating data
+	ep->oldFc = Fc;
+	ep->oldFpc = Fpc;
+	ep->oldx = position[0];
+	ep->energy = oldEnergy;
 
 	/* updating variables*/
 	ep->counter++;
