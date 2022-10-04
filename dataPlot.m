@@ -40,7 +40,7 @@ max(derf)/max(abs(F))
 ra=find(Fe);%1050:1700;
 av=av/length(Fe);
 RMSE=sqrt(sum((F(ra)-Fe(ra)).^2)/length(ra));
-NRMSE=RMSE/max(abs(F(ra)));
+NRMSE=RMSE/max(abs(F(ra)))
 %Q=sqrt(sum(N.^2));
 % for i=1:length(t)/2
 %     if i==1
@@ -91,13 +91,13 @@ ylabel('Energy(N.mm)')
 legend('actual','spring')
 %title('X')
 
-figure()
-plot(t,Eob)
+% figure()
+% plot(t,Eob)
+% 
+% hold on
+% plot(t,EE)
 
-hold on
-plot(t,EE)
-
-figure()
+% figure()
 % %figure(2)
 % subplot(3,1,1)
 % plot(t,P(:,1))
@@ -113,17 +113,17 @@ figure()
 % ylabel('Velocity(mm/s)')
 % %title('X axis')
 
-EE=E';
-%figure(4)
-%subplot(3,1,3)
-plot(t,Eob)
-hold on
-plot(t,0.5*P.^2.*khat2)
-grid on
-xlabel('Time(sec)')
-ylabel('Energy(N.mm)')
+% EE=E';
+% %figure(4)
+% %subplot(3,1,3)
+% plot(t,Eob)
+% hold on
+% plot(t,0.5*P.^2.*khat2)
+% grid on
+% xlabel('Time(sec)')
+% ylabel('Energy(N.mm)')
 %title('X')
 all_ha = findobj( figure_handle, 'type', 'axes', 'tag', '' );
 linkaxes( all_ha, 'x' );
-figure();
-plot(khat2)
+% figure();
+% plot(khat2)

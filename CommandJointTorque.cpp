@@ -415,7 +415,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	const HDdouble kStiffness = 0.1;// 0.075; /* N/mm */positive k is passive
 	HDdouble khat; //estimation of the k
 	const HDdouble constkhat = 0.08; //estimation of the k
-	const HDdouble bDamping = 0.002*0;// 75;positive b is passive
+	const HDdouble bDamping = -0.002;// 75;positive b is passive
     const HDdouble kStylusTorqueConstant = 500; /* torque spring constant (mN.m/radian)*/
     const HDdouble kJointTorqueConstant = 12000; /* torque spring constant (mN.m/radian)*/
  
@@ -510,16 +510,21 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 		controlForce[1] = 0;
 		controlForce[2] = 0;
 	}
-	
+	/*Adding delay*/ 
+	//if the movement be fast, 11 is good enough
 
-	ep->force_history.push(controlForce);
-	if (ep->force_history.size() == 11){
-		force = ep->force_history.front();
-		ep->force_history.pop();
-	}
+	//ep->force_history.push(controlForce);
+	//if (ep->force_history.size() == 21){
+	//	force = ep->force_history.front();
+	//	ep->force_history.pop();
+	//}
+	
+	force = controlForce;
+
+
 	//Forcedx = -controlForce ;
 	//cout << force[0] << endl;
-	//force = controlForce;
+	
 	//sampleTime = 1.0 / currentRate;//SampleTime;
 	sampleTime = 0.001;
 	//ep->energy += sampleTime * force[0] * velocity[0] * -1.0;
@@ -583,7 +588,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	{
 		if (ep->observedEnergy <= 0.0)// && abs(velocity[0])>0.1)
 		{
-			ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]* sampleTime+0.002);
+			ep->alpha = -ep->observedEnergy / (velocity[0] * velocity[0]* sampleTime+0.001);
 		}
 		else
 		{
@@ -605,7 +610,7 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
 	//if (oldEnergy > ep->observedEnergy && ep->observedEnergy <= ePassive)// && abs(velocity[0])>7)// && abs(velocity[0])>15)///change two ands to one
 	//{
-	//	ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime+0.002);// *(1 - ep->observedEnergy / (ep->Emaxp + 0.00001));
+	//	ep->alpha = -(ep->observedEnergy - ePassive) / (velocity[0] * velocity[0] * sampleTime+0.001);// *(1 - ep->observedEnergy / (ep->Emaxp + 0.00001));
 	//}
 	//else
 	//{
@@ -614,13 +619,13 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 
 
 
-	if (positionTwell[0] < kForceInfluence)
-	{
-		force[0] -= ep->alpha*velocity[0];
-	}
-	else{
-		force[0] = 0;
-	}
+	//if (positionTwell[0] < kForceInfluence)
+	//{
+	//	force[0] -= ep->alpha*velocity[0];
+	//}
+	//else{
+	//	force[0] = 0;
+	//}
 	//	
 	/*energy reference TDPA*/
 
@@ -633,10 +638,10 @@ HDCallbackCode HDCALLBACK jointTorqueCallback(void *data)
 	//	ep->alpha = 0.0;
 	//}
 
-	//if (positionTwell[0] < kForceInfluence)
-	//{
-	//	force[0] -= ep->alpha*velocity[0];
-	//}
+	if (positionTwell[0] < kForceInfluence)
+	{
+		force[0] -= ep->alpha*velocity[0];
+	}
 
 	/* Adaptive with dx*/
 	//	HDdouble dx;
