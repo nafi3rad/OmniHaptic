@@ -1,4 +1,4 @@
-﻿Build started 7/12/2022 8:17:24 PM.
+﻿Build started 10/28/2022 12:29:55 PM.
      1>Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\OpenHaptics\Academic\3.1\include /IC:\OpenHaptics\Academic\3.1\utilities\include /Zi /nologo /W3 /WX- /O2 /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Win32\ReleaseAcademicEdition\\" /Fd"Win32\ReleaseAcademicEdition\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt CommandJointTorque.cpp
@@ -11,14 +11,19 @@
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
      1>CommandJointTorque.cpp(401): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
-     1>CommandJointTorque.cpp(851): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(454): warning C4101: 'p' : unreferenced local variable
+     1>CommandJointTorque.cpp(438): warning C4101: 'ePassive' : unreferenced local variable
+     1>CommandJointTorque.cpp(455): warning C4101: 'z' : unreferenced local variable
+     1>CommandJointTorque.cpp(453): warning C4101: 'l' : unreferenced local variable
+     1>CommandJointTorque.cpp(955): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
-     1>CommandJointTorque.cpp(860): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+     1>CommandJointTorque.cpp(964): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
                  D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\conio.h(131) : see declaration of 'getch'
        Link:
          D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Win32\ReleaseAcademicEdition\CommandJointTorque.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32\ReleaseAcademicEdition /LIBPATH:C:\OpenHaptics\Academic\3.1\utilities\lib\Win32\ReleaseAcademicEdition /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32 hd.lib hdu.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Win32\ReleaseAcademicEdition\CommandJointTorque.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Win32\ReleaseAcademicEdition\CommandJointTorque.lib" /MACHINE:X86 /SAFESEH Win32\ReleaseAcademicEdition\CommandJointTorque.obj
          Generating code
-     1>f:\nafise\git\omnihaptic\commandjointtorque.cpp(874): warning C4715: 'initDemo' : not all control paths return a value
+     1>f:\nafise\git\omnihaptic\commandjointtorque.cpp(978): warning C4715: 'initDemo' : not all control paths return a value
+     1>f:\nafise\git\omnihaptic\commandjointtorque.cpp(853): warning C4700: uninitialized local variable 'khat' used
          Finished generating code
          CommandJointTorque_VS2010.vcxproj -> F:\Nafise\git\OmniHaptic\Win32\ReleaseAcademicEdition\CommandJointTorque.exe
        PostBuildEvent:
@@ -32,4 +37,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.27
+Time Elapsed 00:00:06.73

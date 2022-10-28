@@ -85,10 +85,10 @@ subplot(5,1,5)
 plot(t,Eob)
 grid on
 hold on
-plot(t,0.5*P.^2.*khat2)
+%plot(t,0.5*P.^2.*khat2)
 xlabel('Time(sec)')
 ylabel('Energy(N.mm)')
-legend('actual','spring')
+%legend('actual','spring')
 %title('X')
 
 % figure()

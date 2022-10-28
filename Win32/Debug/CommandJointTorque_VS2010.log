@@ -1,10 +1,11 @@
-﻿Build started 7/8/2022 12:44:56 PM.
+﻿Build started 10/3/2022 7:23:50 PM.
      1>Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" on node 2 (Build target(s)).
-     1>Link:
-         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Win32\Debug\CommandJointTorque.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32\Debug /LIBPATH:C:\OpenHaptics\Academic\3.1\utilities\lib\Win32\Debug /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32 hd.lib hdu.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Win32\Debug\CommandJointTorque.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Win32\Debug\CommandJointTorque.lib" /MACHINE:X86 /SAFESEH Win32\Debug\CommandJointTorque.obj
-     1>LINK : fatal error LNK1104: cannot open file 'hd.lib'
+     1>ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\OpenHaptics\Academic\3.1\include /IC:\OpenHaptics\Academic\3.1\utilities\include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Win32\Debug\\" /Fd"Win32\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt CommandJointTorque.cpp
+         CommandJointTorque.cpp
+     1>d:\program files (x86)\microsoft visual studio 12.0\vc\include\limits(249): fatal error C1088: Cannot flush compiler intermediate file: 'C:\Users\CEL\AppData\Local\Temp\_CL_030fca8aex': No space left on device
      1>Done Building Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" (Build target(s)) -- FAILED.
 
 Build FAILED.
 
-Time Elapsed 00:00:00.07
+Time Elapsed 00:00:02.49
