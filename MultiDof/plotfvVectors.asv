@@ -1,0 +1,44 @@
+close all
+V=readmatrix('Velocity.csv');
+P=readmatrix('position.csv');
+F=readmatrix('torque.csv');
+al=readmatrix('Alpha.csv');
+E=readmatrix('energy.csv');
+Fe=readmatrix('ControlForce.csv');
+myVideo = VideoWriter('myVideoFile'); %open video file
+myVideo.FrameRate = 10;  %can adjust this, 5 - 10 works well for me
+open(myVideo)
+g=6;
+% for i=1:length(Fe)-1
+%     deltae(i)=F(i,1)*V(i+1,1)+F(i,2)*V(i+1,2)+F(i,3)*V(i+1,3);
+% end
+for k=1500:length(Fe)
+    
+    quiver(0,0,V(k,1)/100,V(k,2)/100,'b');
+    hold on
+    quiver(0,0,-F(k,1),-F(k,2),'r-','linewidth',2.5);
+    hold on
+    quiver(0,0,-Fe(k,1),-Fe(k,2),'k');
+    hold on
+    quiver(0,0,P(k,1)/50,P(k,2)/50,'--');
+    hold off
+    legend('V(dm/s)','Fc','Fe','X')
+    xlabel('Fx(N)')
+    ylabel('Fy(N)')
+    set(gca,'XLim',[-10/g,10/g],'YLim',[-10/g,10/g])
+    %drawnow
+    %pause(0.01) %Pause and grab frame
+    frame = getframe(gcf); %get frame
+    writeVideo(myVideo, frame);
+end
+close(myVideo)
+magFe=sqrt(Fe(:,1).^2+Fe(:,2).^2);
+magF=sqrt(F(:,1).^2+F(:,2).^2);
+magV=sqrt(V(:,1).^2+V(:,2).^2);
+%Emag=mean((magFe-magF)/magFe);
+%aFe=Fe(:,1)./Fe(:,2);
+for i=1:length(Fe)
+    aFe(i)=(Fe(i,1)*V(i,1)+Fe(i,2)*V(i,2)+Fe(i,3)*V(i,3))/(magFe(i)*magV);
+    aF(i)=(F(i,1)*V(i,1)+F(i,2)*V(i,2)+F(i,3)*V(i,3))/(magFe*magV);
+end
+mean(acos(aFe)-acos(F),'all')

@@ -1,0 +1,15 @@
+z=812;
+velo=[V(z,1);V(z,1)]*0.001;
+dE=E(z,1)*0.001/0.001;
+A=[velo',0,0;0,0,velo'];
+B=[velo(1)^2;velo(1)*velo(2);velo(1)*velo(2);velo(2)^2];
+C=[0,0,0,0,dE]';
+D=[A'*A,B;B',0];
+uu=0.0000000000001;
+un=uu*eye(5,5);
+%Xm=pinv(D)*C;
+Xm=inv(D'*D+un)*D'*C;
+Alm=[Xm(1:2)';Xm(3:4)']
+%inv(hh)*D'*C;
+(Alm*velo)'*velo
+Alm*velo

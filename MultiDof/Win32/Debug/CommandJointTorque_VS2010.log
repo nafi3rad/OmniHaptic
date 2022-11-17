@@ -1,11 +1,31 @@
-﻿Build started 10/3/2022 7:23:50 PM.
-     1>Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" on node 2 (Build target(s)).
+﻿Build started 11/9/2022 6:03:30 PM.
+     1>Project "F:\Nafise\git\OmniHaptic\MultiDof\CommandJointTorque_VS2010.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\OpenHaptics\Academic\3.1\include /IC:\OpenHaptics\Academic\3.1\utilities\include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Win32\Debug\\" /Fd"Win32\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt CommandJointTorque.cpp
+         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"F:\Nafise\eigen-3.4.0\eigen-3.4.0" /IC:\OpenHaptics\Academic\3.1\include /IC:\OpenHaptics\Academic\3.1\utilities\include /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Win32\Debug\\" /Fd"Win32\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt CommandJointTorque.cpp
          CommandJointTorque.cpp
-     1>d:\program files (x86)\microsoft visual studio 12.0\vc\include\limits(249): fatal error C1088: Cannot flush compiler intermediate file: 'C:\Users\CEL\AppData\Local\Temp\_CL_030fca8aex': No space left on device
-     1>Done Building Project "F:\Nafise\git\OmniHaptic\CommandJointTorque_VS2010.vcxproj" (Build target(s)) -- FAILED.
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(292): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 12.0\vc\include\conio.h(131) : see declaration of 'getch'
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(303): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 12.0\vc\include\conio.h(131) : see declaration of 'getch'
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(388): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 12.0\vc\include\conio.h(131) : see declaration of 'getch'
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(408): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 12.0\vc\include\conio.h(131) : see declaration of 'getch'
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(493): warning C4101: 'p' : unreferenced local variable
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(476): warning C4101: 'ePassive' : unreferenced local variable
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(494): warning C4101: 'z' : unreferenced local variable
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(492): warning C4101: 'l' : unreferenced local variable
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(1078): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 12.0\vc\include\conio.h(131) : see declaration of 'getch'
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(1087): warning C4996: 'getch': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _getch. See online help for details.
+                 d:\program files (x86)\microsoft visual studio 12.0\vc\include\conio.h(131) : see declaration of 'getch'
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(1101): warning C4715: 'initDemo' : not all control paths return a value
+     1>f:\nafise\git\omnihaptic\multidof\commandjointtorque.cpp(976): warning C4700: uninitialized local variable 'khat' used
+       Link:
+         D:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Win32\Debug\CommandJointTorque.exe" /INCREMENTAL /NOLOGO /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32\Debug /LIBPATH:C:\OpenHaptics\Academic\3.1\utilities\lib\Win32\Debug /LIBPATH:C:\OpenHaptics\Academic\3.1\lib\Win32 hd.lib hdu.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Win32\Debug\CommandJointTorque.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Win32\Debug\CommandJointTorque.lib" /MACHINE:X86 /SAFESEH Win32\Debug\CommandJointTorque.obj
+     1>LINK : fatal error LNK1104: cannot open file 'hd.lib'
+     1>Done Building Project "F:\Nafise\git\OmniHaptic\MultiDof\CommandJointTorque_VS2010.vcxproj" (Build target(s)) -- FAILED.
 
 Build FAILED.
 
-Time Elapsed 00:00:02.49
+Time Elapsed 00:00:02.08

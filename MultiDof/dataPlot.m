@@ -4,12 +4,12 @@ clc
 
 close all
 clear all
-F=csvread('Torque.csv');
-P=csvread('Position.csv');
+F=csvread('torque.csv');
+P=csvread('position.csv');
 V=csvread('Velocity.csv');
 sT=csvread('sampling.csv');
 al=csvread('Alpha.csv');
-Eob=csvread('Energy.csv');
+Eob=csvread('energy.csv');
 khat2=csvread('khat.csv');
 Fe=csvread('ControlForce.csv');
 
