@@ -1,0 +1,13 @@
+﻿Build started 11/8/2022 7:53:45 PM.
+     1>Project "F:\Nafise\git\OmniHaptic\MultiDof\CommandJointTorque_VS2010.vcxproj" on node 2 (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(297,5): warning MSB8003: Could not find WindowsSDKDir variable from the registry.  TargetFrameworkVersion or PlatformToolset may be set to an invalid version number.
+     1>ClCompile:
+         CL.exe /c /IC:\OpenHaptics\Academic\3.1\include /IC:\OpenHaptics\Academic\3.1\utilities\include /Zi /nologo /W3 /WX- /Od /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\DebugAcademicEdition\\" /Fd"x64\DebugAcademicEdition\vc100.pdb" /Gd /TP /errorReport:prompt CommandJointTorque.cpp
+     1>TRACKER : error TRK0005: Failed to locate: "CL.exe". The system cannot find the file specified.
+         
+         
+     1>Done Building Project "F:\Nafise\git\OmniHaptic\MultiDof\CommandJointTorque_VS2010.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.11

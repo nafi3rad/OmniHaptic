@@ -1,0 +1,171 @@
+/*****************************************************************************
+
+Copyright (c) 2004 SensAble Technologies, Inc. All rights reserved.
+
+OpenHaptics(TM) toolkit. The material embodied in this software and use of
+this software is subject to the terms and conditions of the clickthrough
+Development License Agreement.
+
+For questions, comments or bug reports, go to forums at: 
+    http://dsc.sensable.com
+
+Module Name:
+
+  CommandJointTorque.cpp
+
+Description:
+  This example demonstrates commanding joint torques to the Phantom device. 
+*******************************************************************************/
+#ifdef  _WIN64
+#pragma warning (disable:4996)
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <fstream>
+#include <iostream>
+#include <queue>
+#include <cstdlib>
+#include <nlopt.h>
+//#include <stdio.h>
+//#include <iostream>
+#include <tchar.h>
+#include <math.h>
+//#include <stdlib.h>
+using namespace std;
+
+
+#if defined(WIN32)
+# include <windows.h>
+# include <conio.h>
+#else
+#include <time.h>
+# include "conio.h"
+# include <string.h>
+#define FALSE 0
+#define TRUE 1
+#endif
+
+#include <HD/hd.h>
+#include <HDU/hduError.h>
+#include <HDU/hduVector.h>
+//#include <HDU/hduMatrix.h>
+//#include <Eigen/Dense>
+//#include <Eigen/QR>
+//using namespace Eigen;
+
+//static const hduVector3Dd maxGimbalTorque(188.0,188.0,48.0); //mNm
+//static const hduVector3Dd nominalBaseTorque(400.0,350.0,200.0); //mNm
+//static bool TorqueMode = true;
+
+//HDCallbackCode HDCALLBACK jointTorqueCallback(void *data);// declare functions that you wanna define later but u u
+
+
+//—————— NLopt optimizer code
+typedef struct {
+	double a00, a01, a10, a11, b0, b1;
+} my_constraint_data;
+
+typedef struct {
+	double Fe[2];
+} my_func_data;
+
+double myfunc(unsigned n, const double *x, double *grad, void *data)
+{
+	my_func_data *d = (my_func_data *)data;
+	double r = d->Fe[0] * d->Fe[0] + d->Fe[1] * d->Fe[1] - x[0] * x[0] - x[1] * x[1];
+	if (grad) {
+		grad[0] = -4.0 * x[0]*r; // TODO? ronde objective func be ronde x0
+		grad[1] = -4.0 * x[1]*r; // TODO? ronde objective func be ronde x1
+	}
+
+	return r * r;
+}
+
+double myconstraint1(unsigned n, const double *x, double *grad, void *data)
+{
+	my_constraint_data *d = (my_constraint_data *)data;
+	if (grad) {
+		grad[0] = d->a00; // ronde constraint be ronde x0
+		grad[1] = d->a01; // ronde constraint be ronde x1
+	}
+	double r = d->a00*x[0] + d->a01*x[1] - d->b0;
+	return r; // constraint is assumed to be r <= 0
+}
+
+double myconstraint2(unsigned n, const double *x, double *grad, void *data)
+{
+	my_constraint_data *d = (my_constraint_data *)data;
+	if (grad) {
+		grad[0] = d->a10; // ronde constraint be ronde x0
+		grad[1] = d->a11; // ronde constraint be ronde x1
+	}
+	double r = d->a10*x[0] + d->a11*x[1] - d->b1;
+	return r; // constraint is assumed to be r <= 0
+}
+
+void solve() {
+	double lb[2] = { -1.0e9, 0 };
+	nlopt_opt opt;
+	opt = nlopt_create(NLOPT_LD_SLSQP, 2);
+	nlopt_set_lower_bounds(opt, lb);
+	my_constraint_data cdata;
+	my_func_data fndata;
+	fndata.Fe[0] = -0.5*2;
+	fndata.Fe[1] = 0.1*2;
+
+	nlopt_set_min_objective(opt, myfunc, &fndata);
+	cdata.a00 = -fndata.Fe[0];
+	cdata.a01 = -fndata.Fe[1];
+	cdata.b0 = 0.000001;
+
+	cdata.a10 = 0.1;
+	cdata.a11 = 0.3;
+	cdata.b1 = 0.0;
+
+	//nlopt_add_inequality_constraint(opt, myconstraint1, &cdata, 1e-8);
+	//nlopt_add_inequality_constraint(opt, myconstraint2, &cdata, 1e-8);
+
+	nlopt_set_xtol_rel(opt, 1e-4);
+
+	double x[2] = { 0.1, 0.1 };
+	double minf;
+
+	if (nlopt_optimize(opt, x, &minf) < 0){
+		cout << "nlopt failed!";
+	}
+	else {
+		cout << "min=" << minf << " at x=(" << x[0] << "," << x[1] << ")\n";
+	}
+
+}
+
+//—————
+
+int main(){
+	cout << "start...\n";
+	solve();
+	getch();
+}
+
+/*
+Fe=[0.5;0.1];
+velo=-[0.01;0.03];
+CFp=5;
+T=0.001;
+E=Fe'*velo*T;
+dE=E/T;
+fun=@(x)((Fe'*Fe-x'*x)^2);
+
+A=[-Fe';velo];
+B=[-0.000001;0];
+x0=[0.1;0.1];
+myopts = optimoptions('fmincon','Algorithm','sqp');
+Xp=fmincon(fun,x0,A,B,[],[],[],[],[])%,myopts);
+Xm=Xp;
+Fc=Xm;
+Eee=(Fc)'*velo*T;
+CF=[Fe(1),-Fe(2)]*Fc
+
+*/

@@ -13,8 +13,7 @@ Module Name:
 
   CommandJointTorque.cpp
 
-Description: 
-
+Description:
   This example demonstrates commanding joint torques to the Phantom device. 
 *******************************************************************************/
 #ifdef  _WIN64
@@ -28,12 +27,14 @@ Description:
 #include <iostream>
 #include <queue>
 #include <cstdlib>
+#include <nlopt.h>
 //#include <stdio.h>
 //#include <iostream>
 #include <tchar.h>
 #include <math.h>
 //#include <stdlib.h>
 using namespace std;
+
 
 #if defined(WIN32)
 # include <windows.h>
@@ -63,6 +64,64 @@ HDSchedulerHandle hGravityWell = HD_INVALID_HANDLE;
 
 void mainLoop(void);
 bool initDemo(void);
+
+
+//—————— NLopt optimizer code
+typedef struct {
+	double a00, a01, a10, a11, b0, b1;
+} my_constraint_data;
+
+typedef struct {
+	double Fe[2];
+} my_func_data;
+
+double myfunc(unsigned n, const double *x, double *grad, void *data)
+{
+	my_func_data *d = (my_func_data *)data;
+	if (grad) {
+		grad[0] = -2.0 * x[0]; // TODO? ronde objective func be ronde x0
+		grad[1] = -2.0 * x[1]; // TODO? ronde objective func be ronde x1
+	}
+	double r = d->Fe[0] * d->Fe[0] + d->Fe[1] * d->Fe[1] - x[0] * x[0] - x[1] * x[1];
+	return r * r;
+}
+
+double myconstraint1(unsigned n, const double *x, double *grad, void *data)
+{
+	my_constraint_data *d = (my_constraint_data *)data;
+	if (grad) {
+		grad[0] = d->a00; // ronde constraint be ronde x0
+		grad[1] = d->a01; // ronde constraint be ronde x1
+	}
+	double r = d->a00*x[0] + d->a01*x[1] - d->b0;
+	return r; // constraint is assumed to be r <= 0
+}
+
+double myconstraint2(unsigned n, const double *x, double *grad, void *data)
+{
+	my_constraint_data *d = (my_constraint_data *)data;
+	if (grad) {
+		grad[0] = d->a10; // ronde constraint be ronde x0
+		grad[1] = d->a11; // ronde constraint be ronde x1
+	}
+	double r = d->a10*x[0] + d->a11*x[1] - d->b1;
+	return r; // constraint is assumed to be r <= 0
+}
+
+void solve() {
+	double lb[2] = { -1.0e9, 0 };
+	nlopt_opt opt;
+	opt = nlopt_create(NLOPT_LD_MMA, 2);
+	nlopt_set_lower_bounds(opt, lb);
+	nlopt_set_min_objective(opt, myfunc, NULL);
+	my_constraint_data data;
+	nlopt_add_inequality_constraint(opt, myconstraint1, &data, 1e-8);
+	nlopt_add_inequality_constraint(opt, myconstraint2, &data, 1e-8);
+
+}
+
+//—————
+
 
 void PrintHelp()
 {
